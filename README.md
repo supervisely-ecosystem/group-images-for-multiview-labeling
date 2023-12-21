@@ -1,5 +1,5 @@
 <div align="center" markdown>
-<img src="https://github.com/supervisely-ecosystem/group-images-for-multiview/assets/115161827/34793345-0133-4d1e-b1fb-15de999c85f0"/>  
+<img src="https://github.com/supervisely-ecosystem/group-images-for-multiview-labeling/assets/115161827/1ffcc28f-a466-4036-a909-95aceedebb7e"/>  
 
 # Group Images for Multiview Labeling
 
@@ -30,7 +30,7 @@ Before runnning the app, be aware that it alters the applied project. All applic
 
 Additionally, you can enable synchronized panning and labeling for use with the multiview. This can be configured in the project settings under the visuals category:
 
-<img src="https://github.com/supervisely-ecosystem/group-images-for-multiview/assets/115161827/9e7ab2b3-fc2d-43f4-8bab-57112fc74eee" width = 50%>
+<img src="https://github.com/supervisely-ecosystem/group-images-for-multiview-labeling/assets/115161827/e27a319a-9371-4daa-87c4-0c6a9e5bebc0" width = 50%>
 
 
 # How to Run
@@ -39,14 +39,14 @@ Additionally, you can enable synchronized panning and labeling for use with the 
 
 2. Right click to the project/dataset and run app from context menu
 
-<img src="https://github.com/supervisely-ecosystem/group-images-for-multiview/assets/115161827/1bebd688-5638-4975-bdb4-9cd44c183327">
+<img src="https://github.com/supervisely-ecosystem/group-images-for-multiview-labeling/assets/115161827/5287e318-ddb1-4e5a-b65e-15ebe9a6dbaf">
 
 3. Select the grouping type, batch size and run the app.
 
-<img src="https://github.com/supervisely-ecosystem/group-images-for-multiview/assets/115161827/beea032a-3d84-4c35-83e3-707ce614dbcc">
+<img src="https://github.com/supervisely-ecosystem/group-images-for-multiview-labeling/assets/115161827/719a9344-d6eb-4d09-b943-04df129c432a">
 
 ## Result
 
 Here is how the result looks like in the labeling toolbox:
 
-<img src="https://github.com/supervisely-ecosystem/group-images-for-multiview/assets/115161827/24e386f6-a805-4f38-b7e3-5fa78a2bd5fe">
+<img src="https://github.com/supervisely-ecosystem/group-images-for-multiview-labeling/assets/115161827/6f6c9cd6-a8c8-4c08-8787-fb7c34a30d95">
