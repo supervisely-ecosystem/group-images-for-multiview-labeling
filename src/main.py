@@ -37,7 +37,7 @@ def add_batch_to_grouped_dict(image_ids: List[int], anns: List[sly.Annotation]) 
 
 def extract_batches():
     for group_name in list(grouped_dict.keys()):
-        while len(grouped_dict[group_name]) > batch_size:
+        while len(grouped_dict[group_name]) >= batch_size:
             batch = grouped_dict[group_name][:batch_size]
             grouped_dict[group_name] = grouped_dict[group_name][batch_size:]
             yield (group_name, batch)
@@ -100,7 +100,7 @@ def main():
             anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in anns_json]
             sly.logger.info(f"Annotations of {len(anns)} images are successfully downloaded")
             # Generate and iterate over map, and add a tag to each image with their group id
-            add_batch_to_grouped_dict(image_ids, anns)
+            add_batch_to_grouped_dict(batched_image_ids, anns)
             anns_dict = {}
             for batch in extract_batches():
                 group_name, group_data = batch  # (str, List[Tuple[int, sly.Ann]])
@@ -110,8 +110,9 @@ def main():
                     if im_id in anns_dict:
                         im_ann = anns_dict[im_id]
                     anns_dict[im_id] = im_ann.add_tag(tag)
-            # Check if there are any object in global dict and upload unfinished batches
-            if len(grouped_dict) > 0 and len(grouped_dict.values()) < batch_size:
+            # Check if there are any objects left in the global dict and upload unfinished batches
+            total_tuples = sum(len(tuple) for tuple in grouped_dict.values())
+            if total_tuples != 0:
                 for unfinished_batch in grouped_dict.items():
                     group_name, group_data = unfinished_batch
                     group_index += 1
