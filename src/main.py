@@ -18,7 +18,7 @@ grouped_dict = defaultdict(list)
 
 def add_batch_to_grouped_dict(image_ids: List[int], anns: List[sly.Annotation]) -> None:
     if grouping_mode == "by-batches":
-        grouped_dict["group"] = list(zip(image_ids, anns))
+        grouped_dict["group"].extend(list(zip(image_ids, anns)))
     for image_id, ann in zip(image_ids, anns):
         entry = (image_id, ann)
         if grouping_mode == "obj-class":
@@ -43,11 +43,23 @@ def extract_batches():
             yield (group_name, batch)
 
 
-def get_free_tag_name(original_string, list):
-    if original_string in list:
+def process_batches(anns_dict, batch, group_index):
+    group_name, group_data = batch  # (str, List[Tuple[int, sly.Ann]])
+    if not group_data:
+        return anns_dict
+    for im_id, im_ann in group_data:
+        tag = sly.Tag(tag_meta_group, f"{group_name}_{group_index}")
+        if im_id in anns_dict:
+            im_ann = anns_dict[im_id]
+        anns_dict[im_id] = im_ann.add_tag(tag)
+    return anns_dict
+
+
+def get_free_tag_name(original_string, names_list):
+    if original_string in names_list:
         counter = 1
         new_string = f"{original_string}_{counter}"
-        while new_string in list:
+        while new_string in names_list:
             counter += 1
             new_string = f"{original_string}_{counter}"
         return new_string
@@ -57,6 +69,8 @@ def get_free_tag_name(original_string, list):
 
 @sly.handle_exceptions
 def main():
+    global tag_meta_group
+
     api = sly.Api.from_env()
     project_id = sly.env.project_id(raise_not_found=False)
     dataset_id = sly.env.dataset_id(raise_not_found=False)
@@ -92,6 +106,7 @@ def main():
         images = api.image.get_list(dataset.id)
         image_ids = [img.id for img in images]
         group_index = 0
+        anns_dict = {}
         # Download all image annotations
         for batched_image_ids in sly.batched(image_ids, batch_size=200):
             anns_json = api.annotation.download_json_batch(
@@ -101,38 +116,24 @@ def main():
             sly.logger.info(f"Annotations of {len(anns)} images are successfully downloaded")
             # Generate and iterate over map, and add a tag to each image with their group id
             add_batch_to_grouped_dict(batched_image_ids, anns)
-            anns_dict = {}
             for batch in extract_batches():
-                group_name, group_data = batch  # (str, List[Tuple[int, sly.Ann]])
                 group_index += 1
-                for im_id, im_ann in group_data:
-                    tag = sly.Tag(tag_meta_group, f"{group_name}_{group_index}")
-                    if im_id in anns_dict:
-                        im_ann = anns_dict[im_id]
-                    anns_dict[im_id] = im_ann.add_tag(tag)
-            # Check if there are any objects left in the global dict and upload unfinished batches
-            total_tuples = sum(len(tuple) for tuple in grouped_dict.values())
-            if total_tuples != 0:
-                for unfinished_batch in grouped_dict.items():
-                    group_name, group_data = unfinished_batch
-                    group_index += 1
-                    for im_id, im_ann in group_data:
-                        tag = sly.Tag(tag_meta_group, f"{group_name}_{group_index}")
-                        if im_id in anns_dict:
-                            im_ann = anns_dict[im_id]
-                        anns_dict[im_id] = im_ann.add_tag(tag)
-            sly.logger.info(
-                f"Total of {len(anns_dict.values())} annotations are prepared for upload"
-            )
-            image_ids_list = list(anns_dict.keys())
-            annotations_list = list(anns_dict.values())
+                anns_dict = process_batches(anns_dict, batch, group_index)
 
-            # Upload the updated annotations in batches
-            for batched_ids, batched_anns in zip(
-                sly.batched(image_ids_list), sly.batched(annotations_list)
-            ):
-                api.annotation.upload_anns(batched_ids, batched_anns)
-                sly.logger.info(f"Batch of {len(batched_anns)} was uploaded")
+        for unfinished_batch in grouped_dict.items():
+            group_index += 1
+            anns_dict = process_batches(anns_dict, unfinished_batch, group_index)
+        grouped_dict.clear()
+        sly.logger.info(f"Total of {len(anns_dict.values())} annotations are prepared for upload")
+        image_ids_list = list(anns_dict.keys())
+        annotations_list = list(anns_dict.values())
+
+        # Upload the updated annotations in batches
+        for batched_ids, batched_anns in zip(
+            sly.batched(image_ids_list), sly.batched(annotations_list)
+        ):
+            api.annotation.upload_anns(batched_ids, batched_anns)
+            sly.logger.info(f"Batch of {len(batched_anns)} was uploaded")
 
 
 if __name__ == "__main__":
