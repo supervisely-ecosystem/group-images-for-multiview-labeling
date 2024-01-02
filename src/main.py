@@ -75,7 +75,7 @@ def get_free_tag_name(original_string: str, names_list: List[str]):
 @sly.handle_exceptions
 def main():
     api = sly.Api.from_env()
-    task_id = sly.env.task_id(raise_not_found=False)
+    task_id = sly.env.task_id()
     project_id = sly.env.project_id(raise_not_found=False)
     dataset_id = sly.env.dataset_id(raise_not_found=False)
     if project_id is None:
@@ -112,7 +112,7 @@ def main():
         annotations_for_upload = {}
         # Download all image annotations
         sly.logger.info(f"{len(image_ids)} images are ready to be downloaded and processed...")
-        for batched_image_ids in sly.batched(image_ids, batch_size=50):
+        for batched_image_ids in sly.batched(image_ids):
             anns_json = api.annotation.download_json_batch(
                 dataset_id=dataset.id, image_ids=batched_image_ids
             )
