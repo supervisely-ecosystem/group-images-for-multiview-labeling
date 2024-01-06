@@ -108,7 +108,7 @@ def main():
         # Get list of all the images and their ids in a dataset
         images = api.image.get_list(dataset.id)
         image_ids = [img.id for img in images]
-        group_index = 0
+        group_index = 1
         annotations_for_upload = {}
         # Download all image annotations
         sly.logger.info(f"{len(image_ids)} images are ready to be downloaded and processed...")
@@ -120,12 +120,11 @@ def main():
             add_batch_to_grouped_dict(batched_image_ids, anns)  # Generate a map
             # Iterate over the map, and build a dict with ready-to-upload annotations
             for batch in extract_batches():
-                group_index += 1
                 annotations_for_upload = process_batches(
                     annotations_for_upload, batch, group_index, tag_meta_group
                 )
+                group_index += 1
         for unfinished_batch in grouped_dict.items():  # Process batch residue
-            group_index += 1
             annotations_for_upload = process_batches(
                 annotations_for_upload, unfinished_batch, group_index, tag_meta_group
             )
