@@ -20,6 +20,7 @@
     "modal_template": "src/modal.html",
     "modal_template_state": {
       "selectOption": "by-batches",
-      "sliderValue": 5
+      "sliderValue": 5,
+      "hideSlider": false
   }
   }
