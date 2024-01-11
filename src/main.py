@@ -84,6 +84,7 @@ def main():
         dataset_info = api.dataset.get_info_by_id(dataset_id)
         project_id = dataset_info.project_id
         datasets = [dataset_info]
+        project = api.project.get_info_by_id(project_id)
     else:
         sly.logger.info("App is launched from project")
         project = api.project.get_info_by_id(project_id)
