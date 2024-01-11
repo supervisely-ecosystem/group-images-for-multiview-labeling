@@ -12,6 +12,7 @@ if sly.is_development:
 
 grouping_mode = os.environ["modal.state.selectOption"]
 batch_size = int(os.environ["modal.state.sliderValue"])
+no_batches_mode = bool(os.environ["modal.state.noBatches"])
 
 grouped_dict = defaultdict(list)
 
@@ -35,7 +36,7 @@ def add_batch_to_grouped_dict(image_ids: List[int], anns: List[sly.Annotation]) 
         )
 
 
-def extract_batches():
+def extract_batches(batch_size):
     for group_name in list(grouped_dict.keys()):
         while len(grouped_dict[group_name]) >= batch_size:
             batch = grouped_dict[group_name][:batch_size]
@@ -119,7 +120,9 @@ def main():
             anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in anns_json]
             add_batch_to_grouped_dict(batched_image_ids, anns)  # Generate a map
             # Iterate over the map, and build a dict with ready-to-upload annotations
-            for batch in extract_batches():
+            if no_batches_mode:
+                batch_size = len(images)
+            for batch in extract_batches(batch_size):
                 annotations_for_upload = process_batches(
                     annotations_for_upload, batch, group_index, tag_meta_group
                 )
