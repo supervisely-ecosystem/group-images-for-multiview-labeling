@@ -21,6 +21,6 @@
     "modal_template_state": {
       "selectOption": "by-batches",
       "sliderValue": 5,
-      "hideSlider": false
+      "noBatches": false
   }
   }
