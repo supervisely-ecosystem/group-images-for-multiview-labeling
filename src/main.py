@@ -77,7 +77,7 @@ def get_free_tag_name(original_string: str, names_list: List[str]):
 @sly.handle_exceptions
 def main():
     api = sly.Api.from_env()
-    task_id = sly.env.task_id()
+    task_id = sly.env.task_id(raise_not_found=False)
     project_id = sly.env.project_id(raise_not_found=False)
     dataset_id = sly.env.dataset_id(raise_not_found=False)
     if dataset_id is not None:
@@ -124,6 +124,7 @@ def main():
             anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in anns_json]
             add_batch_to_grouped_dict(batched_image_ids, anns)  # Generate a map
             # Iterate over the map, and build a dict with ready-to-upload annotations
+            global batch_size
             if no_batches_mode:
                 batch_size = len(images)
             for batch in extract_batches(batch_size):
@@ -148,7 +149,7 @@ def main():
         ):
             api.annotation.upload_anns(batched_ids, batched_anns)
         sly.Progress.iter_done_report(progress)
-    api.task.set_output_project(task_id, project_id, project.name)
+    # api.task.set_output_project(task_id, project_id, project.name)
 
 
 if __name__ == "__main__":
