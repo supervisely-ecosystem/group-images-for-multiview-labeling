@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import supervisely as sly
 from collections import defaultdict
 from typing import List, Dict, Tuple
+from distutils.util import strtobool
 
 # load ENV variables for debug
 # has no effect in production
@@ -12,7 +13,7 @@ if sly.is_development:
 
 grouping_mode = os.environ["modal.state.selectOption"]
 batch_size = int(os.environ["modal.state.sliderValue"])
-no_batches_mode = bool(os.environ["modal.state.noBatches"])
+no_batches_mode = bool(strtobool(os.environ["modal.state.noBatches"]))
 
 grouped_dict = defaultdict(list)
 
