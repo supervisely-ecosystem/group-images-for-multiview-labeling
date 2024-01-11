@@ -13,8 +13,6 @@ if sly.is_development:
 grouping_mode = os.environ["modal.state.selectOption"]
 batch_size = int(os.environ["modal.state.sliderValue"])
 no_batches_mode = bool(os.environ["modal.state.noBatches"])
-if no_batches_mode:
-    grouping_mode = "by-batches"
 
 grouped_dict = defaultdict(list)
 
