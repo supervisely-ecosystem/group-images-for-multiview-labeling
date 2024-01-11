@@ -16,14 +16,14 @@
         title="Batch size"
         description="Select the batch size for grouping images"
       >
-        <div v-if="state.noBatches === false">
-          <el-slider v-model="state.sliderValue" :min="2" :max="100" :step="1" show-input></el-slider>
-        </div>
-
-        <div>
-          <label for="noBatches">No Batches Mode</label>
-          <input type="checkbox" id="noBatches" v-model="state.noBatches">
-        </div>
+      <div>
+        <label for="noBatches">No Batches Mode</label>
+        <input type="checkbox" id="noBatches" v-model="state.noBatches">
+      </div>
+      
+      <div v-if="state.noBatches == false">
+        <el-slider v-model="state.sliderValue" :min="2" :max="100" :step="1" show-input></el-slider>
+      </div>
       </sly-field>
     </div>
   </sly-field>
