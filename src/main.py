@@ -149,7 +149,7 @@ def main():
         ):
             api.annotation.upload_anns(batched_ids, batched_anns)
         sly.Progress.iter_done_report(progress)
-    # api.task.set_output_project(task_id, project_id, project.name)
+    api.task.set_output_project(task_id, project_id, project.name)
 
 
 if __name__ == "__main__":
