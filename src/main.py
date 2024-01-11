@@ -79,7 +79,7 @@ def main():
     task_id = sly.env.task_id()
     project_id = sly.env.project_id(raise_not_found=False)
     dataset_id = sly.env.dataset_id(raise_not_found=False)
-    if project_id is None:
+    if dataset_id is not None:
         sly.logger.info("App is launched from dataset")
         dataset_info = api.dataset.get_info_by_id(dataset_id)
         project_id = dataset_info.project_id
