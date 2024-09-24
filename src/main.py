@@ -77,7 +77,6 @@ def get_free_tag_name(original_string: str, names_list: List[str]):
 @sly.handle_exceptions
 def main():
     api = sly.Api.from_env()
-    task_id = sly.env.task_id(raise_not_found=False)
     project_id = sly.env.project_id(raise_not_found=False)
     dataset_id = sly.env.dataset_id(raise_not_found=False)
     if dataset_id is not None:
@@ -149,7 +148,8 @@ def main():
         ):
             api.annotation.upload_anns(batched_ids, batched_anns)
         sly.Progress.iter_done_report(progress)
-    api.task.set_output_project(task_id, project_id, project.name)
+    if sly.is_production():
+        api.task.set_output_project(sly.env.task_id(), project_id, project.name)
 
 
 if __name__ == "__main__":
