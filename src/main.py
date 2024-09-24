@@ -7,7 +7,7 @@ from distutils.util import strtobool
 
 # load ENV variables for debug
 # has no effect in production
-if sly.is_development:
+if sly.is_development():
     load_dotenv(os.path.expanduser("~/supervisely.env"))
     load_dotenv("local.env")
 
@@ -85,7 +85,7 @@ def main():
         project_id = dataset_info.project_id
         datasets = [dataset_info]
         project = api.project.get_info_by_id(project_id)
-    else:
+    elif project_id is not None:
         sly.logger.info("App is launched from project")
         project = api.project.get_info_by_id(project_id)
         datasets = api.dataset.get_list(project.id)
