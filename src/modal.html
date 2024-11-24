@@ -11,16 +11,13 @@
       </el-select>
     </div>
 
-    <div>
+    <div style="margin-top: 1em;">
       <sly-field
         title="Batch size"
         description="Select the batch size for grouping images"
       >
-      <div>
-        <label for="noBatches">No Batches Mode</label>
-        <input type="checkbox" id="noBatches" v-model="state.noBatches">
-      </div>
-      
+      <el-checkbox v-model="state.noBatches">No Batches Mode</el-checkbox>
+
       <div v-if="state.noBatches == false">
         <el-slider v-model="state.sliderValue" :min="2" :max="100" :step="1" show-input></el-slider>
       </div>
