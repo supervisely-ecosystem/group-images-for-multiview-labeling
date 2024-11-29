@@ -100,8 +100,12 @@ def main():
     api.project.update_meta(project_id, project_meta.add_tag_meta(tag_meta_group))
 
     # Enable multi-tag mode and grouping
-    api.project.update_settings(project_id, settings={"allowDuplicateTags": True})
-    api.project.images_grouping(project_id, enable=True, tag_name=tag_name)
+    project_settings = {
+            "allowDuplicateTags": True,
+            "groupImages": True,
+            "groupImagesByTagId": tag_meta_group.sly_id,
+        }
+    api.project.update_settings(project_id, settings=project_settings)
     sly.logger.info(
         f"Successfully updated project's settings, and enabled images grouping by the tag {tag_name}"
     )
