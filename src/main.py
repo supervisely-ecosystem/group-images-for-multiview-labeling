@@ -76,6 +76,8 @@ def get_free_tag_name(original_string: str, names_list: List[str]):
 
 @sly.handle_exceptions
 def main():
+    global batch_size
+
     api = sly.Api.from_env()
     project_id = sly.env.project_id(raise_not_found=False)
     dataset_id = sly.env.dataset_id(raise_not_found=False)
@@ -111,7 +113,6 @@ def main():
     )
 
     # Get list of datasets and iterate over it
-    progress = sly.Progress(message=f"Processing datasets...", total_cnt=len(datasets))
     for dataset in datasets:
         # Get list of all the images and their ids in a dataset
         images = api.image.get_list(dataset.id)
@@ -119,15 +120,15 @@ def main():
         group_index = 1
         annotations_for_upload = {}
         # Download all image annotations
-        sly.logger.info(f"{len(image_ids)} images are ready to be downloaded and processed...")
-        for batched_image_ids in sly.batched(image_ids):
+        sly.logger.info(f"Processing dataset '{dataset.name}'")
+        progress = sly.Progress(f"Processing images...", len(images))
+        for batch_ids in sly.batched(image_ids):
             anns_json = api.annotation.download_json_batch(
-                dataset_id=dataset.id, image_ids=batched_image_ids
+                dataset_id=dataset.id, image_ids=batch_ids
             )
             anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in anns_json]
-            add_batch_to_grouped_dict(batched_image_ids, anns)  # Generate a map
+            add_batch_to_grouped_dict(batch_ids, anns)  # Generate a map
             # Iterate over the map, and build a dict with ready-to-upload annotations
-            global batch_size
             if no_batches_mode:
                 batch_size = len(images)
             for batch in extract_batches(batch_size):
@@ -135,10 +136,12 @@ def main():
                     annotations_for_upload, batch, group_index, tag_meta_group
                 )
                 group_index += 1
-        for unfinished_batch in grouped_dict.items():  # Process batch residue
+            progress.iters_done_report(len(batch_ids))
+        for unfinished_batch in grouped_dict.items():  # Process remaining batch items
             annotations_for_upload = process_batches(
                 annotations_for_upload, unfinished_batch, group_index, tag_meta_group
             )
+            progress.iters_done_report(len(unfinished_batch))
         grouped_dict.clear()
         sly.logger.info(
             f"Total of {len(annotations_for_upload.values())} images are processed and prepared for upload"
@@ -151,7 +154,6 @@ def main():
             sly.batched(image_ids_list), sly.batched(annotations_list)
         ):
             api.annotation.upload_anns(batched_ids, batched_anns)
-        sly.Progress.iter_done_report(progress)
     if sly.is_production():
         api.task.set_output_project(sly.env.task_id(), project_id, project.name)
 
