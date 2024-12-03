@@ -116,7 +116,10 @@ def main():
     for dataset in datasets:
         # Get list of all the images and their ids in a dataset
         images = api.image.get_list(dataset.id)
-        image_ids = [img.id for img in images]
+        if no_batches_mode:
+            sly.logger.info("No-batches mode detected, settings batch size to dataset images count")
+            batch_size = len(images)
+        image_ids = [info.id for info in images]
         group_index = 1
         annotations_for_upload = {}
         # Download all image annotations
@@ -128,20 +131,21 @@ def main():
             )
             anns = [sly.Annotation.from_json(ann_json, project_meta) for ann_json in anns_json]
             add_batch_to_grouped_dict(batch_ids, anns)  # Generate a map
+
             # Iterate over the map, and build a dict with ready-to-upload annotations
-            if no_batches_mode:
-                batch_size = len(images)
             for batch in extract_batches(batch_size):
                 annotations_for_upload = process_batches(
                     annotations_for_upload, batch, group_index, tag_meta_group
                 )
                 group_index += 1
             progress.iters_done_report(len(batch_ids))
+            
         for unfinished_batch in grouped_dict.items():  # Process remaining batch items
             annotations_for_upload = process_batches(
                 annotations_for_upload, unfinished_batch, group_index, tag_meta_group
             )
             progress.iters_done_report(len(unfinished_batch))
+
         grouped_dict.clear()
         sly.logger.info(
             f"Total of {len(annotations_for_upload.values())} images are processed and prepared for upload"
