@@ -19,6 +19,16 @@ grouped_dict = defaultdict(list)
 
 
 def add_batch_to_grouped_dict(image_ids: List[int], anns: List[sly.Annotation]) -> None:
+    """
+    Adds a batch of image IDs and their corresponding annotations to a grouped dictionary based on the specified grouping mode.
+
+    Parameters:
+    image_ids (List[int]): A list of image IDs.
+    anns (List[sly.Annotation]): A list of annotations corresponding to the image IDs.
+
+    Returns:
+    None
+    """
     if grouping_mode == "by-batches":
         grouped_dict["group"].extend(list(zip(image_ids, anns)))
     for image_id, ann in zip(image_ids, anns):
@@ -37,7 +47,16 @@ def add_batch_to_grouped_dict(image_ids: List[int], anns: List[sly.Annotation]) 
         )
 
 
-def extract_batches(batch_size):
+def extract_batches(batch_size: int):
+    """
+    Generator function that extracts batches of a specified size from a dictionary of grouped items.
+
+    Args:
+        batch_size (int): The size of each batch to be extracted.
+
+    Yields:
+        tuple: A tuple containing the group name and a list of items in the batch.
+    """
     for group_name in list(grouped_dict.keys()):
         while len(grouped_dict[group_name]) >= batch_size:
             batch = grouped_dict[group_name][:batch_size]
@@ -51,6 +70,19 @@ def process_batches(
     group_index: int,
     tag_meta_group: sly.TagMeta,
 ):
+    """
+    Processes a batch of image annotations, adding a tag to each annotation in the batch.
+
+    Args:
+        anns_dict (Dict): A dictionary where keys are image IDs and values are annotations.
+        batch (Tuple[str, List[Tuple[int, sly.Annotation]]]): A tuple containing the group name and a list of tuples,
+            where each tuple contains an image ID and its corresponding annotation.
+        group_index (int): The index of the group being processed.
+        tag_meta_group (sly.TagMeta): The metadata for the tag to be added to the annotations.
+
+    Returns:
+        Dict: The updated dictionary of annotations with the new tags added.
+    """
     group_name, group_data = batch
     if not group_data:
         return anns_dict
@@ -62,7 +94,14 @@ def process_batches(
     return anns_dict
 
 
-def get_free_tag_name(original_string: str, names_list: List[str]):
+def get_free_tag_name(original_string: str, names_list: List[str]) -> str:
+    """
+    Generate a unique tag name by appending a counter to the original string if it already exists in names_list.
+    
+    :param original_string: The original tag name.
+    :param names_list: List of existing tag names.
+    :return: A unique tag name.
+    """
     if original_string in names_list:
         counter = 1
         new_string = f"{original_string}_{counter}"
@@ -81,6 +120,7 @@ def main():
     api = sly.Api.from_env()
     project_id = sly.env.project_id(raise_not_found=False)
     dataset_id = sly.env.dataset_id(raise_not_found=False)
+
     if dataset_id is not None:
         sly.logger.info("App is launched from dataset")
         dataset_info = api.dataset.get_info_by_id(dataset_id)
@@ -91,6 +131,9 @@ def main():
         sly.logger.info("App is launched from project")
         project = api.project.get_info_by_id(project_id)
         datasets = api.dataset.get_list(project.id)
+    else:
+        sly.logger.error("Neither project_id nor dataset_id is provided.")
+        return
 
     # Add tag meta and check if tag with given name already exists
     project_meta = sly.ProjectMeta.from_json(api.project.get_meta(project_id))
@@ -103,10 +146,10 @@ def main():
 
     # Enable multi-tag mode and grouping
     project_settings = {
-            "allowDuplicateTags": True,
-            "groupImages": True,
-            "groupImagesByTagId": tag_meta_group.sly_id,
-        }
+        "allowDuplicateTags": True,
+        "groupImages": True,
+        "groupImagesByTagId": tag_meta_group.sly_id,
+    }
     api.project.update_settings(project_id, settings=project_settings)
     sly.logger.info(
         f"Successfully updated project's settings, and enabled images grouping by the tag {tag_name}"
@@ -117,7 +160,7 @@ def main():
         # Get list of all the images and their ids in a dataset
         images = api.image.get_list(dataset.id)
         if no_batches_mode:
-            sly.logger.info("No-batches mode detected, settings batch size to dataset images count")
+            sly.logger.info("No-batches mode detected, setting batch size to dataset images count")
             batch_size = len(images)
         image_ids = [info.id for info in images]
         group_index = 1
@@ -148,7 +191,7 @@ def main():
 
         grouped_dict.clear()
         sly.logger.info(
-            f"Total of {len(annotations_for_upload.values())} images are processed and prepared for upload"
+            f"Total of {len(annotations_for_upload)} images are processed and prepared for upload"
         )
         image_ids_list = list(annotations_for_upload.keys())
         annotations_list = list(annotations_for_upload.values())
