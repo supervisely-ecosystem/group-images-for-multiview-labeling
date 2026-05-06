@@ -29,5 +29,5 @@
     "sliderValue": 5,
     "noBatches": false
   },
-  "min_instance_version": "6.9.22"
+  "instance_version": "6.15.60"
 }
